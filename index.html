@@ -3,42 +3,102 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Examen de practica</title>
+  <title>Examen de práctica</title>
 
   <!-- ✅ ENLACE CORRECTO AL CSS -->
   <link rel="stylesheet" href="styles.css">
+
+  <!-- ✅ AJUSTES DE TAMAÑO DEL CONTAINER -->
+  <style>
+    body {
+      margin: 0;
+      background-color: #7a7a7a; /* fondo gris */
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    /* 🔹 Ajuste del contenedor principal */
+    .container {
+      width: 95%;              /* ancho casi total */
+      max-width: 1100px;       /* aumenta el tamaño horizontal */
+      margin: 15px auto;       /* menos espacio arriba y abajo */
+      padding: 20px;
+      background-color: #cfcfcf;
+      border-radius: 8px;
+      box-shadow: 0 0 6px rgba(0, 0, 0, 0.3);
+
+      /* 🔹 alarga el espacio vertical */
+      min-height: 93vh;        /* ocupa casi toda la altura visible */
+      display: flex;
+      justify-content: flex-start;
+    }
+
+    .card {
+      width: 100%;
+      background: #ffffff;
+      border-radius: 10px;
+      padding: 25px;
+      box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+      flex-grow: 1;
+    }
+
+    header {
+      background: #b30000;
+      color: white;
+      text-align: center;
+      padding: 10px 0;
+    }
+
+    .line3 {
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    .actions {
+      display: flex;
+      justify-content: center;
+      margin-top: 20px;
+    }
+
+    button#guardar {
+      background-color: #b30000;
+      color: #fff;
+      font-size: 12px;
+      font-weight: bold;
+      padding: 12px 40px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+      transition: all 0.2s ease-in-out;
+    }
+
+    button#guardar:hover {
+      background-color: #cc0000;
+    }
+  </style>
 </head>
+
 <body>
-  <!-- Encabezado oficial (Estilo A - limpio y profesional) -->
+  <!-- Encabezado -->
   <header>
     <div class="header-top">
       <div class="line3">EXAMEN SIMULACRO CB (40 preguntas)</div>
-      
-      </h1>
     </div>
-  
   </header>
 
+  <!-- Contenido principal -->
   <main>
     <section id="formulario" class="container">
       <div class="card">
         <div class="user-section">
-          <!-- <label for="nombre">APELLIDOS Y NOMBRES:</label>
-<input id="nombre" type="text" placeholder="APELLIDOS Y NOMBRES" oninput="this.value = this.value.toUpperCase();" />
-
-<label for="dni">DNI:</label>
-<input id="dni" type="text" placeholder="12345678" maxlength="8" pattern="[0-9]{8}" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0,8);" />
--->
+          <!-- Campos de usuario desactivados -->
         </div>
 
         <form id="cuestionario" autocomplete="off">
-          <!-- <h4>Preguntas (40)</h4>-->
           <div id="questions-list"></div>
 
           <div class="actions">
             <button type="button" id="guardar">Guardar</button>
-            <button type="button" id="verPuntuacion">Ver Puntuación</button>
-            <!--<button type="button" id="reiniciar">Reiniciar (nuevas 20 preguntas)</button> -->
           </div>
         </form>
 
@@ -46,10 +106,8 @@
       </div>
     </section>
   </main>
-
-  <div class="signature">powered by decibelius</
-
-  <!-- ✅ ENLACE CORRECTO AL JAVASCRIPT -->
+   <div class="signature">powered by decibelius</
+  <!-- ✅ Enlace al script -->
   <script src="script.js"></script>
 </body>
 </html>
