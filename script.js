@@ -479,10 +479,10 @@ document.getElementById('guardar').addEventListener('click', function(){
   const dni = dniEl ? (dniEl.value || "").trim() : "";
 
   // Validación básica: ambos campos obligatorios if (!nombre || !dni)
-  if (!dni){
-    alert("Por favor complete APELLIDOS Y NOMBRES y DNI.");
-    return;
-  }
+  //if (!dni){
+  //  alert("Por favor complete APELLIDOS Y NOMBRES y DNI.");
+  //  return;
+  //}
 
   // Recolectar respuestas
   const respuestas = obtenerRespuestas();
