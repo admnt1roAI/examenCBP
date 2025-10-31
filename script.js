@@ -313,64 +313,55 @@ options:["Son de cumplimiento obligatorio dentro del CGBVP","Solo aplican a ofic
 
 /* --------------------
    UTILIDADES (funciones de ayuda)
-   - shuffleArray: mezcla un array (Fisher-Yates)
-   - csvEscape: escapa correctamente cada campo para CSV
    -------------------- */
 
 // Mezcla (Fisher-Yates) para obtener orden aleatorio de preguntas
-function shuffleArray(arr){
-  const a = arr.slice(); // clona para no modificar array original
-  for (let i = a.length - 1; i > 0; i--){
+function shuffleArray(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [a[i], a[j]] = [a[j], a[i]];
   }
-  return a; // devuelve copia mezclada
+  return a;
 }
 
-// Escapa un campo para CSV: duplica comillas internas y encierra todo entre comillas
-function csvEscape(value){
+// Escapa un campo para CSV
+function csvEscape(value) {
   if (value === null || value === undefined) return '""';
   const s = String(value);
   return '"' + s.replace(/"/g, '""') + '"';
 }
 
 /* --------------------
-   LÓGICA DE PREGUNTAS:
-   - seleccionar 40 preguntas aleatorias del banco de 100
-   - renderizar esas 20 en la página
+   LÓGICA DE PREGUNTAS
    -------------------- */
 
-let preguntasMostradas = [];           // array con las 20 preguntas que se muestran
-const TOTAL_MUESTRA = 40;              // número de preguntas por examen (40)
+let preguntasMostradas = [];
+const TOTAL_MUESTRA = 8;
 
-function generarPreguntasAleatorias(){
-  // mezclamos todo el banco y tomamos los primeros TOTAL_MUESTRA
+function generarPreguntasAleatorias() {
   const shuffled = shuffleArray(PREGUNTAS_100);
   preguntasMostradas = shuffled.slice(0, TOTAL_MUESTRA).map((p, idx) => {
-    // añadimos displayIndex para referencia en UI (1..20)
     return Object.assign({}, p, { displayIndex: idx + 1 });
   });
 }
 
-// Renderiza las preguntas en el contenedor con id 'questions-list'
-function renderPreguntas(){
+// Renderiza las preguntas
+function renderPreguntas() {
   const container = document.getElementById('questions-list');
-  if (!container) return; // si no existe el contenedor, salimos
-  container.innerHTML = ""; // limpiamos
+  if (!container) return;
+  container.innerHTML = "";
   preguntasMostradas.forEach((p, idx) => {
-    const qid = `q${idx+1}`; // name para los input radio (q1..q20)
+    const qid = `q${idx + 1}`;
     const div = document.createElement('div');
     div.className = 'q-card';
-    // Construimos HTML de las 4 opciones
     const optsHtml = p.options.map((opt, i) => {
-      const val = ['a','b','c','d','e'][i];
-      // label con input radio y texto de opción
+      const val = ['a', 'b', 'c', 'd', 'e'][i];
       return `<label class="opt"><input type="radio" name="${qid}" value="${val}"> ${val}) ${opt}</label>`;
     }).join("");
-    // Estructura de la tarjeta de pregunta (incluye ID original)
     div.innerHTML = `
       <div class="q-head">
-        <div class="q-title">Pregunta ${idx+1}</div>
+        <div class="q-title">Pregunta ${idx + 1}</div>
         <div class="muted">ID:${p.id}</div>
       </div>
       <div style="margin-top:6px;">${p.q}</div>
@@ -380,47 +371,43 @@ function renderPreguntas(){
   });
 }
 
-/* Inicialización: generar y renderizar examen al cargar el script */
-function initExam(){
+function initExam() {
   generarPreguntasAleatorias();
   renderPreguntas();
   const resultadoDiv = document.getElementById('resultado');
-  if (resultadoDiv) resultadoDiv.innerHTML = ""; // limpiar resultados previos
+  if (resultadoDiv) resultadoDiv.innerHTML = "";
 }
 initExam();
 
 /* --------------------
-   FUNCIONALIDAD: recoger respuestas, evaluar, construir CSV y descargar
-   - obtenerRespuestas: lee radios seleccionados
-   - evaluar: compara con respuestas correctas y construye detalles
-   - construirEncabezadoCSV / construirFilaCSV: forman contenido CSV
+   FUNCIONALIDAD PRINCIPAL
    -------------------- */
 
-// Obtener respuestas seleccionadas en la UI (array de 20 valores 'a'|'b'|'c'|'d' o "" si no contestó)
-function obtenerRespuestas(){
+function obtenerRespuestas() {
   const respuestas = [];
-  for (let i = 0; i < TOTAL_MUESTRA; i++){
-    const name = `q${i+1}`;
+  for (let i = 0; i < TOTAL_MUESTRA; i++) {
+    const name = `q${i + 1}`;
     const sel = document.querySelector(`input[name="${name}"]:checked`);
     respuestas.push(sel ? sel.value : "");
   }
   return respuestas;
 }
 
-// Evaluar respuestas: devuelve puntaje (número de aciertos) y detalles por pregunta
-function evaluar(respuestas){
-  let puntaje = 0;             // contador de aciertos
-  const detalles = [];         // detalles para revisión/explanación
-  for (let i = 0; i < TOTAL_MUESTRA; i++){
-    const p = preguntasMostradas[i];            // pregunta mostrada en la posición i
-    const selected = respuestas[i] || "";       // respuesta seleccionada por el usuario
-    const correctLetter = p.answer;             // letra correcta del banco
-    const correct = selected && selected === correctLetter; // booleano
-    if (correct) puntaje++;                     // si acierta, incrementa puntaje
-    // agregamos detalle para la revisión posterior
+function evaluar(respuestas) {
+  let puntaje = 0;
+  const detalles = [];
+
+  for (let i = 0; i < TOTAL_MUESTRA; i++) {
+    const p = preguntasMostradas[i];
+    const selected = respuestas[i] || "";
+    const correctLetter = p.answer;
+    const correct = selected && selected === correctLetter;
+    if (correct) puntaje++;
+
     detalles.push({
       id: p.id,
       preguntaIndex: i + 1,
+      pregunta: p.q,
       selected: selected,
       correct: correct,
       correctLetter: correctLetter,
@@ -428,109 +415,103 @@ function evaluar(respuestas){
       opciones: p.options
     });
   }
+
   return { puntaje, detalles };
 }
 
-// Construir encabezado CSV dinámico (FECHA, NOMBRE, DNI, PUNTAJE, luego Q1_ID,Q1_RESP,Q1_CORR, ... Q20_ID,Q20_RESP,Q20_CORR)
-function construirEncabezadoCSV(){
-  const headers = ["FECHA","APELLIDOS Y NOMBRES","DNI","PUNTAJE"];
-  for (let i = 1; i <= TOTAL_MUESTRA; i++){
-    headers.push(`Q${i}_ID`);
-    headers.push(`Q${i}_RESP`);
-    headers.push(`Q${i}_CORR`);
+function construirEncabezadoCSV() {
+  const headers = ["FECHA", "APELLIDOS Y NOMBRES", "DNI", "PUNTAJE"];
+  for (let i = 1; i <= TOTAL_MUESTRA; i++) {
+    headers.push(`Q${i}_ID`, `Q${i}_RESP`, `Q${i}_CORR`);
   }
-  return headers.join(",") + "\r\n"; // CRLF para compatibilidad con Excel en Windows
+  return headers.join(",") + "\r\n";
 }
 
-// Construir la fila CSV con los datos del examen: FECHA, NOMBRE, DNI, PUNTAJE (como número) y detalles por pregunta
-function construirFilaCSV(fecha, nombre, dni, resultadoEval){
+function construirFilaCSV(fecha, nombre, dni, resultadoEval) {
   const row = [];
-  // Fecha y datos básicos (escapados para CSV)
   row.push(csvEscape(fecha));
   row.push(csvEscape(nombre));
   row.push(csvEscape(dni));
-  // ---------- CORRECCIÓN SOLICITADA ----------
-  // Guardar solo el número de aciertos como valor numérico (sin comillas) para evitar cualquier
-  // interpretación como fecha. No usamos csvEscape() aquí para que el campo quede sin comillas
-  // y Excel lo reconozca como número directamente. Ejemplo: 9
-  row.push(String(resultadoEval.puntaje)); // convertimos a string sin escapar (sin comillas en CSV)
-  // Añadimos por cada pregunta: ID, respuesta del examinado y si estuvo correcta (SI/NO)
+  row.push(String(resultadoEval.puntaje));
+
   resultadoEval.detalles.forEach(d => {
-    row.push(csvEscape(d.id));                // ID de la pregunta (escapado por si acaso)
-    row.push(csvEscape(d.selected || ""));    // respuesta seleccionada
-    row.push(csvEscape(d.correct ? "SI" : "NO")); // SI/NO para indicar acierto
+    row.push(csvEscape(d.id));
+    row.push(csvEscape(d.selected || ""));
+    row.push(csvEscape(d.correct ? "SI" : "NO"));
   });
   return row.join(",") + "\r\n";
 }
 
 /* --------------------
-   EVENTOS: botones Guardar, Ver Puntuación y Reiniciar
-   - 'guardar': evalúa, muestra explicaciones y descarga CSV
-   - 'verPuntuacion': muestra puntaje actual en alerta
-   - 'reiniciar': genera nuevas 20 preguntas
+   EVENTO: GUARDAR
    -------------------- */
+document.getElementById('guardar').addEventListener('click', function () {
+  const nombre = (document.getElementById('nombre')?.value || "").trim();
+  const dni = (document.getElementById('dni')?.value || "").trim();
 
-// Evento GUARDAR: valida datos, evalúa, muestra explicación y descarga CSV
-document.getElementById('guardar').addEventListener('click', function(){
-  // Tomamos nombre y dni desde inputs (validación simple)
-  const nombreEl = document.getElementById('nombre');
-  const dniEl = document.getElementById('dni');
-  const nombre = nombreEl ? (nombreEl.value || "").trim() : "";
-  const dni = dniEl ? (dniEl.value || "").trim() : "";
-
-  // Validación básica: ambos campos obligatorios if (!nombre || !dni)
-  //if (!dni){
-  //  alert("Por favor complete APELLIDOS Y NOMBRES y DNI.");
-  //  return;
-  //}
-
-  // Recolectar respuestas
   const respuestas = obtenerRespuestas();
-  
-  // ✅ NUEVA VALIDACIÓN: Verificar que todas las preguntas estén respondidas
   const preguntasSinResponder = respuestas.filter(resp => resp === "").length;
   if (preguntasSinResponder > 0) {
     alert(`Falta seleccionar respuestas. Tiene ${preguntasSinResponder} pregunta(s) sin responder.`);
     return;
   }
 
-  // Evaluar respuestas
   const resultado = evaluar(respuestas);
-
-  // Formatear fecha local en formato YYYY-MM-DD HH:MM:SS (sin comas)
   const d = new Date();
   const pad = n => String(n).padStart(2, '0');
-  const fecha = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+  const fecha = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 
-  // ---------- Mostrar resultados y explicaciones en la página ----------
+  // ✅ Mostrar resultados con pregunta incluida
   const resultadoDiv = document.getElementById('resultado');
-  let html = `<div style="margin-bottom:8px;"><strong>Tu puntaje:</strong> ${resultado.puntaje} / ${TOTAL_MUESTRA}</div>`;
-  html += `<div style="font-size:13px; color:#374151; margin-bottom:8px;">Fecha: ${fecha}</div>`;
-  html += `<div>`;
-  // Iteramos detalles para mostrar respuesta seleccionada, correcta y explicación
+  let html = `
+    <div style="margin-bottom:8px;">
+      <strong>Tu puntaje:</strong> ${resultado.puntaje} / ${TOTAL_MUESTRA}
+    </div>
+    <div style="font-size:13px; color:#374151; margin-bottom:8px;">
+      Fecha: ${fecha}
+    </div>
+    <div>
+  `;
+
   resultado.detalles.forEach((d) => {
     const correctaLetra = d.correctLetter;
-    const correctaTexto = d.opciones[['a','b','c','d','e'].indexOf(correctaLetra)];
-    const selTexto = d.selected ? d.opciones[['a','b','c','d','e'].indexOf(d.selected)] : "<em>No respondió</em>";
-    html += `<div style="padding:8px; border-radius:6px; margin-bottom:6px; background:#fff; border:1px solid #eef2f6;">
-      <div style="font-weight:700;">Pregunta ${d.preguntaIndex} (ID ${d.id})</div>
-      <div style="margin-top:6px;">Respuesta seleccionada: <strong>${d.selected || "-"}</strong> — ${selTexto}</div>
-      <div>Respuesta correcta: <strong>${correctaLetra}</strong> — ${correctaTexto}</div>
-      <div style="margin-top:6px; color:#374151;"><em>Explicación:</em> ${d.explanation}</div>
-      <div style="margin-top:6px; font-weight:700; color:${d.correct ? '#059669' : '#dc2626'}">${d.correct ? 'Correcta' : 'Incorrecta'}</div>
-    </div>`;
+    const correctaTexto = d.opciones[['a', 'b', 'c', 'd', 'e'].indexOf(correctaLetra)];
+    const selTexto = d.selected
+      ? d.opciones[['a', 'b', 'c', 'd', 'e'].indexOf(d.selected)]
+      : "<em>No respondió</em>";
+
+    html += `
+      <div style="padding:8px; border-radius:8px; margin-bottom:10px; background:#fff; border:1px solid #e5e7eb;">
+        <div style="font-weight:700; color:#8b0000;">
+          Pregunta ${d.preguntaIndex} (ID ${d.id})
+        </div>
+        <div style="margin-top:4px; font-weight:600; color:#111;">
+          ${d.pregunta}
+        </div>
+        <div style="margin-top:6px;">
+          <strong>Respuesta seleccionada:</strong> ${d.selected || "-"} — ${selTexto}
+        </div>
+        <div>
+          <strong>Respuesta correcta:</strong> ${correctaLetra} — ${correctaTexto}
+        </div>
+        <div style="margin-top:6px; color:#374151;">
+          <em>Explicación:</em> ${d.explanation}
+        </div>
+        <div style="margin-top:6px; font-weight:700; color:${d.correct ? '#059669' : '#dc2626'};">
+          ${d.correct ? '✅ Correcta' : '❌ Incorrecta'}
+        </div>
+      </div>`;
   });
+
   html += `</div>`;
   if (resultadoDiv) resultadoDiv.innerHTML = html;
 
-  // 🔒 Ocultar el examen una vez guardado
+  // Ocultar el examen
   const formSection = document.getElementById('cuestionario');
   if (formSection) formSection.style.display = "none";
 
-  // ---------- ENVIAR TAMBIÉN A GOOGLE SHEETS (con 20 preguntas y respuestas) ----------
+  // Enviar a Google Sheets
   const sheetURL = "https://script.google.com/macros/s/AKfycbxiG8S7__jkM3NnACNo8_mdTX-3-DPWiNDpHVxIWm5__4z3oebF15Hlp7Qswajnqi63/exec";
-
-  // Construimos los datos que enviaremos al Apps Script
   const payload = {
     fecha: fecha,
     nombre: nombre,
@@ -543,43 +524,35 @@ document.getElementById('guardar').addEventListener('click', function(){
     }))
   };
 
-  // Enviamos todo al Web App de Google Sheets
   fetch(sheetURL, {
     method: "POST",
     mode: "no-cors",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload)
   })
-  .then(() => console.log("✅ Datos completos enviados a Google Sheets correctamente."))
-  .catch(err => console.error("⚠️ Error al enviar a Google Sheets:", err));
+    .then(() => console.log("✅ Datos completos enviados a Google Sheets correctamente."))
+    .catch(err => console.error("⚠️ Error al enviar a Google Sheets:", err));
 });
 
-// Evento VER PUNTUACION: sin descargar, solo calcula y alerta
-document.getElementById('verPuntuacion').addEventListener('click', function(){
+/* --------------------
+   EVENTOS ADICIONALES
+   -------------------- */
+
+document.getElementById('verPuntuacion').addEventListener('click', function () {
   const respuestas = obtenerRespuestas();
   const resultado = evaluar(respuestas);
   alert(`Tu puntuación actual es: ${resultado.puntaje} / ${TOTAL_MUESTRA}`);
 });
 
-// Evento REINICIAR: genera nuevas 20 preguntas aleatorias (pierde respuestas no guardadas)
-document.getElementById('reiniciar').addEventListener('click', function(){
-  if (!confirm("¿Generar nuevas 20 preguntas aleatorias? Se perderán las respuestas no guardadas.")) return;
+document.getElementById('reiniciar').addEventListener('click', function () {
+  if (!confirm("¿Generar nuevas preguntas aleatorias? Se perderán las respuestas no guardadas.")) return;
   initExam();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 });
 
 /* --------------------
-   FIN del archivo script.js
-   Notas finales:
-   - El puntaje se guarda en el CSV como número (ej. 9) en la columna PUNTAJE.
-   - Si deseas que el puntaje también aparezca como "9/20" en la UI, lo mostramos en pantalla,
-     pero en el CSV queda solo el número para evitar conversiones de fecha en Excel.
-   - Si quieres acumular múltiples envíos en un solo archivo almacenado en localStorage,
-     o exportar todas las filas de la sesión juntas, puedo agregar esa funcionalidad.
+   BLOQUEO DE CLIC DERECHO Y COPIA
    -------------------- */
-
-
-// 🔒 BLOQUEO DE CLIC DERECHO Y SELECCIÓN DE TEXTO
 document.addEventListener("contextmenu", e => e.preventDefault());
 document.addEventListener("selectstart", e => e.preventDefault());
 document.addEventListener("copy", e => e.preventDefault());
