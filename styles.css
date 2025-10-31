@@ -34,15 +34,15 @@ hr{ border:0; height:1px; background:rgba(255,255,255,0.18); margin:12px auto; w
 #questions-list{ max-height:62vh; overflow:auto; padding-right:6px; margin-top:6px; }
 
 /* pregunta card */
-.q-card{ border:1px solid #eef2f6; border-radius:8px; padding:10px; margin-bottom:10px; background:linear-gradient(180deg,#fff,#fbfdff); }
+.q-card{ border:1px solid #eef2f6; border-radius:2px; padding:2px; margin-bottom:2px; background:linear-gradient(180deg,#fff,#fbfdff); }
 .q-head{ display:flex; justify-content:space-between; align-items:center; gap:8px; }
 .q-title{ font-weight:800; font-size:14px; }
 
 .options {
-  margin-top: 8px;
+  margin-top: 2px;
   display: flex;
   flex-direction: column;   /* 🔹 apila las opciones verticalmente */
-  gap: 6px;                 /* 🔹 separación entre opciones */
+  gap: 2px;                 /* 🔹 separación entre opciones */
 }
 
 
