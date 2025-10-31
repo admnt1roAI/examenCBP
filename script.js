@@ -337,7 +337,7 @@ function csvEscape(value) {
    -------------------- */
 
 let preguntasMostradas = [];
-const TOTAL_MUESTRA = 8;
+const TOTAL_MUESTRA = 40;
 
 function generarPreguntasAleatorias() {
   const shuffled = shuffleArray(PREGUNTAS_100);
